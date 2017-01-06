@@ -10,16 +10,18 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170106022856) do
+ActiveRecord::Schema.define(version: 20170106035322) do
 
-  create_table "mailboxs", force: :cascade do |t|
+  create_table "mailboxes", force: :cascade do |t|
     t.integer "user_id"
-    t.index ["user_id"], name: "index_mailboxs_on_user_id"
+    t.index ["user_id"], name: "index_mailboxes_on_user_id"
   end
 
   create_table "mails", force: :cascade do |t|
     t.integer "user_id"
     t.integer "mailbox_id"
+    t.string  "title"
+    t.text    "content"
     t.index ["mailbox_id"], name: "index_mails_on_mailbox_id"
     t.index ["user_id"], name: "index_mails_on_user_id"
   end

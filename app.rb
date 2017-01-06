@@ -11,15 +11,22 @@ set :database, {adapter: "sqlite3", database: "cnline.sqlite3"}
 
 enable :sessions
 
-=begin
+
+
 before do
   puts "before block"
   if session[:id]
     @user = User.find(session[:id])
-    erb 
+    if @user.super?
+      session[:mode] = 2
+    else
+      session[:mode] = 1
+    end
+  else
+    session[:mode] = 0
   end
 end
-=end
+
 
 get '/' do    
   erb :index

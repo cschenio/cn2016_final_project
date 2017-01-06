@@ -19,11 +19,16 @@ end
 
 post '/signup' do
  puts params
- @user = User.new(username: params["username"],
+ @is_exists = User.find_by(username: params["username"])
+ if @is_exists
+   redirect '/error/1'
+ else
+   @user = User.new(username: params["username"],
                  password: params["password"])
- @user.save
- session[:id] = @user.id
- redirect '/users'
+   @user.save
+   session[:id] = @user.id
+   redirect '/users'
+ end
 end
 
 get '/login' do
@@ -32,12 +37,11 @@ end
 
 post '/login' do
   puts params
-  @user = User.find_by(:username => params["username"],
-                      :password => params["password"])
+  @user = User.find_by(username: params["username"],
+                      password: params["password"])
 
   if @user.nil?
-    puts "User not found"
-    redirect '/error'
+    redirect '/error/2'
   else
     session[:id] = @user.id
     redirect '/users'
@@ -46,7 +50,6 @@ end
 
 get '/logout' do
   session.clear
-  puts "logout"
   redirect '/'
 end
 
@@ -55,12 +58,22 @@ get '/users' do
     @user = User.find(session[:id])
     erb :'/users/index'
   else
-    redirect '/error'
+    redirect '/error/3'
   end
 end
 
-get '/error' do
+get '/error/:id' do
+  @msg = ""
+  case params[:id]
+  when "1"
+    @msg = "This username is existed!"
+  when "2"
+    @msg = "Username or Password wrong!"
+  when "3"
+    @msg = "User session error..."
+  end
   erb :'error'
+
 end
 
 ### User END ###

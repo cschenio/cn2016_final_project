@@ -1,0 +1,24 @@
+<h1> Mail List </h1>
+<hr width="1pt">
+<table>
+    <thead>
+	<tr>
+	    <td> FROM </td>
+	    <td> TO </td>
+	    <td> Title </td>
+	    <td> Content </td>
+	</tr>
+    </thead>
+    <tbody>
+	<% @mails.each do |mail| %>
+	<tr>
+	    <td> <%= mail.from.id %> </td>
+	    <td> <%= mail.to.id %> </td>
+	    <td> <%= mail.title %> </td>
+	    <td> <a href=<%="/mails/#{mail.id}"%>> Show </a> </td>
+	</tr>
+	<% end %>
+    </tbody>
+</table>
+
+<a href="/mails/new"> New Mail </a>

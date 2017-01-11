@@ -6,51 +6,48 @@ require './models/user'
 require './models/mail'
 require './models/mailbox'
 require './models/mail_history'
+# Concerns: reusable modules
+require './controller_concerns/permission_authable'
+
+include PermissionAuthable
 
 set :database, {adapter: "sqlite3", database: "cnline.sqlite3"}
 
 enable :sessions
 
-
-
-before do
-  puts "before block"
-  if session[:id]
-    @user = User.find(session[:id])
-    if @user.super?
-      session[:mode] = 2
-    else
-      session[:mode] = 1
-    end
-  else
-    session[:mode] = 0
-  end
-end
-
-
 get '/' do    
   erb :index
 end
 
-
 namespace '/mails' do 
+
+  before do 
+    redirect to('/') unless has_permission?("user")
+  end
+
   get do
-    @mails = Mail.all
+    @mails = if has_permission?("super")
+               Mail.all
+             else
+               Mail.related_to(User.find(session[:id]))
+             end
     erb :'mails/index'
   end
 
   get '/new' do
+    @number_of_users = User.count
     erb :'mails/new'
   end
 
   get '/:id' do
     @mail = Mail.find(params[:id])
+    redirect to('/mails') unless my_mail?(@mail)
     erb :'mails/show'
   end
 
   post '/new' do
-    mail = Mail.new(:user => User.find(1),# session[:id],
-                    :mailbox => User.find(1).mailbox,# User.find(params[:receiver]).mailbox,
+    mail = Mail.new(:user => User.find(session[:id]),
+                    :mailbox => User.find(params[:receiver]).mailbox,
                     :title => params[:title],
                     :content => params[:content])
     mail.save

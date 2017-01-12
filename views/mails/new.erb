@@ -1,10 +1,7 @@
 <h1> New Mail </h1>
 <form action="/mails/new" method="post">
-  <label> Send mail to user (id from 1 to <%=@number_of_users%>) </label>
-  <input type="number" name="receiver" min="1" max="<%=@number_of_users%>" placeholder="user id"><br>
-  <label> Title </label>
+  <!--<input type="text" name="receiver"><br>-->
   <input type="text" name="title" placeholder="title"><br>
-  <label> Content </label>
   <textarea name="content" placeholder="content"></textarea><br>
   <input type="submit" value="Submit">
 </form>

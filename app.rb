@@ -1,5 +1,6 @@
 require 'sinatra'
 require "sinatra/namespace"
+require 'redcarpet'
 # Models
 require 'sinatra/activerecord'
 require './models/user'
@@ -37,7 +38,9 @@ namespace '/mails' do
   end
 
   get '/:id' do
+    markdown = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true, no_intra_emphasis: true)
     @mail = Mail.find(params[:id])
+    @content = markdown.render(@mail.content)
     erb :'mails/show'
   end
 

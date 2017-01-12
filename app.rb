@@ -13,6 +13,9 @@ require './controller_concerns/permission_authable'
 
 include PermissionAuthable
 
+# File transfer
+require 'fileutils'
+
 set :database, {adapter: "sqlite3", database: "cnline.sqlite3"}
 
 enable :sessions
@@ -59,7 +62,7 @@ end
 
 
 namespace '/files' do
-	$file_path = '/public/uploads/'
+	$file_path = '/Users/Chang/github/cn2016_final_project/uploads'
 
 	before do
 		redirect to('/') unless has_permission?("user")
@@ -68,9 +71,10 @@ namespace '/files' do
 	get do
 		@user = User.find(session[:id])
 		online = Online.find_by(:username => @user.username)
-		online.has_file = false
+		online.has_file = false # the user has been here
 
-		@user_file = Online_file.find_by(:to => @user.username)
+		@user_file = Online_file.where(:to => @user.username)
+		puts @user_file.count unless @user_file.nil?
 		@online_users = Online.all
 		erb :'files/index'
 	end
@@ -83,35 +87,47 @@ namespace '/files' do
 
 	post '/upload/:user' do
 		@sender = User.find(session[:id])
-		
-		if params['file'] && params['file']['filename']
-			filename = params['file']['filename']
-			tempfile = params['file']['tempfile']
+		puts params['file']
+		if params['file'] && params['file'][:filename]
+			filename = params['file'][:filename]
+			tempfile = params['file'][:tempfile]
 			root_path = $file_path + "/#{params[:user]}/#{@sender.username}"
 			puts "root_path = #{root_path}"
-			
-			File.copy(tempfile.path, "#{root_path}/#{filename}")
+			puts filename
+			#File.copy(tempfile.path, "#{root_path}/#{filename}")
+			FileUtils.mkdir_p(root_path) unless File.exist?(root_path)
+			File.open("#{root_path}/#{filename}", 'wb') do |f|
+      	f.write(tempfile.read)
+    	end
 
-			Online_file.create(:from => @sender.username, :to => params[:user], :filename => filename)
+    	overwritten = Online_file.find_by(:from => @sender.username,
+    		                                :to => params[:user],
+    		                                :filename => filename)
+
+			Online_file.create(:from => @sender.username,
+				                 :to => params[:user],
+				                 :filename => filename)
 			receiver = Online.find_by(:username => params[:user])
 			receiver.has_file = true
-    end
-  	return "The file was successfully uploaded!"
+			return "The file was successfully uploaded!"
+		end
 	end
 
 	get '/download/:sender/:file' do
 		# Open the file under current username and download it...
 		user = User.find(session[:id])
-		path = $file_path + "#{user.username}/#{params[:sender]}/#{params[:file]}"
+		path = $file_path + "/#{user.username}/#{params[:sender]}/#{params[:file]}"
 		puts path
 
 		redirect to('/error/nofile') if !File.exist?(path)
 		send_file path, :filename => params[:file], :disposition => 'attachment'
+		puts "after send the file"
+		# DEBUG: it will turn to other page after send_file
 		File.delete(path)
 		onlinefile = Online_file.find_by(:from => params[:sender],
 			                                :to => user.username,
 			                                :filename => params[:file])
-		onlinefile.destroy	
+		onlinefile.destroy_all	
 	end
 end
 
@@ -190,16 +206,17 @@ namespace '/users' do
   	session.clear
 
   	online_user = Online.find_by(:username => user.username)
-  	online_user.destroy
-  	user_files = Online_file.find_by(:to => user.username)
-  	unless user_files.nil?
-	  	user_files.each do |file_info|
-	  		path = $file_path + "#{user.username}/#{file_info.from}/#{file_info.filename}"
-	  		File.delete(path) if File.exist?(path)
-	  		file_info.destroy
-	  	end
-	  end
-    
+  	online_user.destroy unless online_user.nil?
+  	
+  	user_files = Online_file.where(:to => user.username)
+  	user_dir = $file_path + "/#{user.username}"
+  	puts user_dir
+  	if File.exist?(user_dir)
+  		puts "delete dir now..."
+  		FileUtils.remove_dir(user_dir, true) 
+  	end
+  	user_files.destroy_all unless user_files.nil?
+
     redirect to('/')
   end
 

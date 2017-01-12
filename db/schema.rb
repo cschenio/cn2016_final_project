@@ -10,6 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
+
 ActiveRecord::Schema.define(version: 20170106045525) do
 
   create_table "mailboxes", force: :cascade do |t|

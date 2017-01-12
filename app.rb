@@ -1,11 +1,15 @@
 require 'sinatra'
 require "sinatra/namespace"
+require 'redcarpet'
+require 'rouge'
+require 'erubis'
 # Models
 require 'sinatra/activerecord'
 require './models/user'
 require './models/mail'
 require './models/mailbox'
 require './models/mail_history'
+
 # Concerns: reusable modules
 require './controller_concerns/permission_authable'
 
@@ -40,6 +44,7 @@ namespace '/mails' do
   end
 
   get '/:id' do
+    markdown = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true, no_intra_emphasis: true)
     @mail = Mail.find(params[:id])
     redirect to('/mails') unless my_mail?(@mail)
     erb :'mails/show'
@@ -128,4 +133,3 @@ namespace '/error' do
 	end
 
 end
-

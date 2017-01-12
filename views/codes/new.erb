@@ -1,0 +1,10 @@
+<h1> New Code </h1>
+<form action="/codes/new" method="post">
+  <select name="lang">
+    <% @lang_list.each do |lang| %>
+      <option value="<%=lang%>"> <%=lang%> </option>
+    <% end %>
+  </select>
+  <textarea name="content" placeholder="code here..." wrap="hard" cols="80"></textarea><br>
+  <input type="submit" value="Submit">
+</form>

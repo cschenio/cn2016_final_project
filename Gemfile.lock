@@ -15,6 +15,7 @@ GEM
     arel (7.1.4)
     backports (3.6.8)
     concurrent-ruby (1.0.4)
+    erubis (2.7.0)
     i18n (0.7.0)
     minitest (5.10.1)
     multi_json (1.12.1)
@@ -24,6 +25,8 @@ GEM
     rack-test (0.6.3)
       rack (>= 1.0)
     rake (10.4.2)
+    redcarpet (3.4.0)
+    rouge (2.0.7)
     sinatra (1.4.7)
       rack (~> 1.5)
       rack-protection (~> 1.4)
@@ -50,7 +53,10 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  erubis
   rake
+  redcarpet
+  rouge
   sinatra
   sinatra-activerecord
   sinatra-namespace

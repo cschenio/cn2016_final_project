@@ -1,0 +1,49 @@
+<h2>File transfer Page</h2>
+
+<a href="../users">User Page</a>
+
+<br><br>
+<%= unless @user_file.nil? %>
+	<h3>Your filebox</h3>
+	<hr width="1pt">                                                                                                   
+		<table>
+		    <thead>
+		  <tr>
+		      <td> Sender </td>
+		      <td> Filename </td>
+		  </tr>
+		    </thead>
+		    <tbody>
+				  <% @user_file.each do |file| %>
+				  <tr>
+				  		<td> <%= file.from %> </td>
+				      <td> <a href=<% "download/#{file.from}/#{file.filename}" %> > <%= file.filename %> </a> </td>s
+				  </tr>
+				  <% end %>
+		    </tbody>
+		</table>
+	<% else %>
+		There is no any file to receive...
+<% end %>
+<br><br>
+
+<% unless @online_users.nil? %>
+	<h3>Online user List</h3>
+	<hr width="1pt">                                                                                                   
+	<table>
+	    <thead>
+	  <tr>
+	      <td> User </td>
+	  </tr>
+	    </thead>
+	    <tbody>
+	  <% @online_users.each do |user| %>
+	  <tr>
+	      <td> <a href="upload/<% user.username%>"><%= user.username if user.username != @user.username %> </a> </td>
+	  </tr>
+	  <% end %>
+	    </tbody>
+	</table>
+<% else %>
+	There is no any online user...
+<% end %>

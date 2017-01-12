@@ -1,7 +1,7 @@
 <h2>Welcome <%= @user.username %> !</h2>
 
 <a href="../mails"> Messenging </a> <br><br>
-<a href="#"> File Transfer </a><br><br>
+<a href="../files"> File Transfer </a><br><br> <%= "new file to download" if @has_file%>
 <a href="/users/logout"> Log out </a><br><br>
 
 

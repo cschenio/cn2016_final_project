@@ -1,0 +1,24 @@
+<h1> Code List </h1>
+<hr width="1pt">
+<table>
+    <thead>
+	<tr>
+	    <td> FROM </td>
+	    <td> TO </td>
+	    <td> Language </td>
+	    <td> Content </td>
+	</tr>
+    </thead>
+    <tbody>
+	<% @codes.each do |code| %>
+	<tr>
+	    <td> <%= code.from.id %> </td>
+	    <td> <%= code.to.id %> </td>
+	    <td> <%= code.lang %> </td>
+	    <td> <a href=<%="/codes/#{code.id}"%>> Show </a> </td>
+	</tr>
+	<% end %>
+    </tbody>
+</table>
+
+<a href="/codes/new"> New Code </a>

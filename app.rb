@@ -1,12 +1,15 @@
 require 'sinatra'
 require "sinatra/namespace"
 require 'redcarpet'
+require 'rouge'
+require 'erubis'
 # Models
 require 'sinatra/activerecord'
 require './models/user'
 require './models/mail'
 require './models/mailbox'
 require './models/mail_history'
+require './models/code'
 
 set :database, {adapter: "sqlite3", database: "cnline.sqlite3"}
 
@@ -121,3 +124,36 @@ get '/error/:id' do
 end
 
 ### User END ###
+
+namespace '/codes' do
+  formatter = Rouge::Formatters::HTML.new(css_class: 'highlight')
+
+  get do
+    @codes = Code.all
+    erb :'codes/index'
+  end
+
+  get '/new' do    
+    @lang_list = Rouge::Lexers.constants.select {|c| Rouge::Lexers.const_get(c).is_a? Class}.map{|c| c.to_s}
+    erb :'codes/new'
+  end
+
+  get '/:id' do
+    @code = Code.find(params[:id])
+    @lang = @code.lang
+    lexer = Rouge::Lexers.const_get(@lang.to_sym).send(:new) 
+    @content = formatter.format(lexer.lex(@code.content))
+    @style = Rouge::Themes::Base16.render(scope: '.highlight')
+    erb :'codes/show'
+  end
+
+  post '/new' do
+    p params[:content]
+    code = Code.new(:user => User.find(1),# session[:id],
+                    :mailbox => User.find(1).mailbox,# User.find(params[:receiver]).mailbox,
+                    :lang => params[:lang],
+                    :content => params[:content])
+    code.save
+    redirect to('/codes')
+  end
+end

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170112141256) do
+ActiveRecord::Schema.define(version: 20170112151831) do
 
   create_table "mailboxes", force: :cascade do |t|
     t.integer "user_id"
@@ -26,8 +26,15 @@ ActiveRecord::Schema.define(version: 20170112141256) do
     t.index ["user_id"], name: "index_mails_on_user_id"
   end
 
+  create_table "online_files", force: :cascade do |t|
+    t.string "from"
+    t.string "to"
+    t.string "filename"
+  end
+
   create_table "onlines", force: :cascade do |t|
-    t.string "username"
+    t.string  "username"
+    t.boolean "has_file"
   end
 
   create_table "users", force: :cascade do |t|

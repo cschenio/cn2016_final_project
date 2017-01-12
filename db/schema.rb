@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170112151831) do
+ActiveRecord::Schema.define(version: 20170112202744) do
 
   create_table "mailboxes", force: :cascade do |t|
     t.integer "user_id"
@@ -35,12 +35,14 @@ ActiveRecord::Schema.define(version: 20170112151831) do
   create_table "onlines", force: :cascade do |t|
     t.string  "username"
     t.boolean "has_file"
+    t.index ["username"], name: "index_onlines_on_username", unique: true
   end
 
   create_table "users", force: :cascade do |t|
     t.string  "username"
     t.string  "password"
     t.boolean "super"
+    t.index ["username"], name: "index_users_on_username", unique: true
   end
 
 end

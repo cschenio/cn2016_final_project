@@ -4,6 +4,7 @@ require "sinatra/namespace"
 require 'sinatra/activerecord'
 require './models/user'
 require './models/online'
+require './models/online_file'
 require './models/mail'
 require './models/mailbox'
 require './models/mail_history'
@@ -61,7 +62,7 @@ namespace '/files' do
 	$file_path = '/public/uploads/'
 
 	before do
-		redirect to('/') unless has_permission("user")
+		redirect to('/') unless has_permission?("user")
 	end
 
 	get do
@@ -134,6 +135,18 @@ namespace '/users' do
   	erb :'users/index'
   end
 
+### DEBUG
+  get '/online' do
+  	online_users = Online.all
+  	puts "online"
+  	if online_users
+  		online_users.each { |user| puts user.username }
+  	else
+  		puts "no online user"
+  	end
+  end
+###
+
   get '/signup' do
     erb :'users/signup'
   end
@@ -149,7 +162,7 @@ namespace '/users' do
                       :super => (params["super"].nil?)? false : true)
       user.save
       session[:id] = user.id
-      Online.create(:username => params["username"])
+      online = Online.create(:username => user.username, :has_file => false)
       redirect to('/users')
     end
   end
@@ -164,23 +177,29 @@ namespace '/users' do
     redirect to('/error/user_not_found') if user.nil?
     redirect to('/error/password_wrong') if params["password"] != user.password
     session[:id] = user.id
-    Online.create(:username => params["username"])
+    puts
+    puts "create online object"
+    online = Online.create(:username => params["username"], :has_file => false)
     redirect to('/users')
   end
 
   get '/logout' do
   	puts "logout"
-  	
+
   	user = User.find(session[:id])
+  	session.clear
+
   	online_user = Online.find_by(:username => user.username)
   	online_user.destroy
-  	user_file = Online_file.find_by(:to => user.username)
-  	user_file.each do |file_info|
-  		path = $file_path + "#{user.username}/#{file_info.from}/#{file_info.filename}"
-  		File.delete(path) if File.exist?(path)
-  		file_info.destroy
-  	end
-    session.clear
+  	user_files = Online_file.find_by(:to => user.username)
+  	unless user_files.nil?
+	  	user_files.each do |file_info|
+	  		path = $file_path + "#{user.username}/#{file_info.from}/#{file_info.filename}"
+	  		File.delete(path) if File.exist?(path)
+	  		file_info.destroy
+	  	end
+	  end
+    
     redirect to('/')
   end
 

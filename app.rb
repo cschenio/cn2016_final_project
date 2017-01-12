@@ -70,69 +70,75 @@ namespace '/mails' do
 end
 
 
-### User START ###
-
-get '/signup' do
-  erb :'/signup/index'
-end
-
-post '/signup' do
- puts params
- @is_exists = User.find_by(username: params["username"])
- if @is_exists
-   redirect '/error/1'
- else
-   @user = User.new(username: params["username"],
-                 password: params["password"])
-   @user.save
-   session[:id] = @user.id
-   redirect '/users'
- end
-end
-
-get '/login' do
-  erb :'/login/index'
-end
-
-post '/login' do
-  puts params
-  @user = User.find_by(username: params["username"],
-                      password: params["password"])
-
-  if @user.nil?
-    redirect '/error/2'
-  else
-    session[:id] = @user.id
-    redirect '/users'
+namespace '/users' do
+  
+  before '/signup' do
+  	#puts "request.path = #{request.path}" # print current url
+  	redirect to('/users') if has_permission?("user")
   end
-end
 
-get '/logout' do
-  session.clear
-  redirect '/'
-end
-
-get '/users' do
-  if session[:id]
-    @user = User.find(session[:id])
-    erb :'/users/index'
-  else
-    redirect '/error/3'
+  before '/login' do
+  	#puts "request.path = #{request.path}" # print current url
+  	redirect to('/users') if has_permission?("user")
   end
+
+  get do
+  	redirect to('/users/login') unless has_permission?("user")
+  	@user = User.find(session[:id])
+  	@users = (has_permission?("super"))? User.all : nil
+  	erb :'users/index'
+  end
+
+  get '/signup' do
+    erb :'users/signup'
+  end
+  
+  post '/signup' do
+    puts params
+    user_exists = User.find_by(:username => params["username"])
+    if user_exists
+      redirect to('/error/user_exists')
+    else
+      user = User.new(:username => params["username"],
+                      :password => params["password"],
+                      :super => (params["super"].nil?)? false : true)
+      user.save
+      session[:id] = user.id
+      redirect to('/users')
+    end
+  end
+
+  get '/login' do
+    erb :'users/login'
+  end
+
+  post '/login' do
+    puts params
+    user = User.find_by(:username => params["username"])
+    redirect to('/error/user_not_found') if user.nil?
+    redirect to('/error/password_wrong') if params["password"] != user.password
+    session[:id] = user.id
+    redirect to('/users')
+  end
+
+  get '/logout' do
+  	puts "logout"
+    session.clear
+    redirect to('/')
+  end
+
 end
 
-get '/error/:id' do
-  @msg = ""
-  case params[:id]
-  when "1"
-    @msg = "This username is existed!"
-  when "2"
-    @msg = "Username or Password wrong!"
-  when "3"
-    @msg = "User session error..."
+namespace '/error' do
+  get '/:cond' do
+    @msg = case params[:cond]
+           when "user_exists" then "The account already exists."
+           when "user_not_found" then "The account doesn't exist."
+           when "password_wrong" then "Password is wrong!"
+           else ""
+           end
+    erb :'error'
   end
-  erb :'error'
-
 end
 
 ### User END ###
@@ -169,3 +175,4 @@ namespace '/codes' do
     redirect to('/codes')
   end
 end
+

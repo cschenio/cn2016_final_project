@@ -19,6 +19,7 @@ include PermissionAuthable
 
 # File transfer
 require 'fileutils'
+require_relative './config' # contains file_path
 
 set :database, {adapter: "sqlite3", database: "cnline.sqlite3"}
 
@@ -74,7 +75,6 @@ end
 
 
 namespace '/files' do
-	$file_path = '/Users/Chang/github/cn2016_final_project/uploads'
 
 	before do
 		redirect to('/') unless has_permission("user")
@@ -103,7 +103,7 @@ namespace '/files' do
 		if params['file'] && params['file'][:filename]
 			filename = params['file'][:filename]
 			tempfile = params['file'][:tempfile]
-			root_path = $file_path + "/#{params[:user]}/#{@sender.username}"
+			root_path = Path::FILE_PATH + "/#{params[:user]}/#{@sender.username}"
 			puts "root_path = #{root_path}"
 			puts filename
 			#File.copy(tempfile.path, "#{root_path}/#{filename}")
@@ -118,7 +118,7 @@ namespace '/files' do
 
 			Online_file.create(:from => @sender.username,
 				                 :to => params[:user],
-				                 :filename => filename)
+				                 :filename => filename) if overwritten.nil?
 			receiver = Online.find_by(:username => params[:user])
 			receiver.has_file = true
 			return "The file was successfully uploaded!"
@@ -128,7 +128,7 @@ namespace '/files' do
 	get '/download/:sender/:file' do
 		# Open the file under current username and download it...
 		user = User.find(session[:id])
-		path = $file_path + "/#{user.username}/#{params[:sender]}/#{params[:file]}"
+		path = Path::FILE_PATH + "/#{user.username}/#{params[:sender]}/#{params[:file]}"
 		puts path
 
 		redirect to('/error/nofile') if !File.exist?(path)
@@ -144,7 +144,7 @@ namespace '/files' do
 end
 
 namespace '/users' do
-  
+
   before '/signup' do
   	#puts "request.path = #{request.path}" # print current url
   	redirect to('/users') if has_permission?("user")
@@ -156,6 +156,7 @@ namespace '/users' do
   end
 
   get do
+  	puts Path::FILE_PATH
   	redirect to('/users/login') unless has_permission?("user")
   	@user = User.find(session[:id])
   	@has_file = Online.find_by(:username => @user.username).has_file
@@ -205,7 +206,7 @@ namespace '/users' do
   	online_user.destroy unless online_user.nil?
   	
   	user_files = Online_file.where(:to => user.username)
-  	user_dir = $file_path + "/#{user.username}"
+  	user_dir = Path::FILE_PATH + "/#{user.username}"
   	puts user_dir
   	if File.exist?(user_dir)
   		puts "delete dir now..."

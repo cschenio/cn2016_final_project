@@ -56,6 +56,29 @@ namespace '/mails' do
 end
 
 
+namespace '/files' do
+	before do
+		redirect to('/') unless has_permission("user")
+	end
+
+	get do
+		@online_users = Onlines.all
+		
+	end
+	get '/upload' do
+
+		erb :'files/upload'
+	end
+
+	post '/upload' do
+		File.open('uploads/' + params['myfile'][:filename], "w") do |f|
+    	f.write(params['myfile'][:tempfile].read)
+    end
+  	return "The file was successfully uploaded!"
+	end
+
+end
+
 namespace '/users' do
   
   before '/signup' do

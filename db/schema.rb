@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170106045525) do
+ActiveRecord::Schema.define(version: 20170112141256) do
 
   create_table "mailboxes", force: :cascade do |t|
     t.integer "user_id"
@@ -24,6 +24,10 @@ ActiveRecord::Schema.define(version: 20170106045525) do
     t.text    "content"
     t.index ["mailbox_id"], name: "index_mails_on_mailbox_id"
     t.index ["user_id"], name: "index_mails_on_user_id"
+  end
+
+  create_table "onlines", force: :cascade do |t|
+    t.string "username"
   end
 
   create_table "users", force: :cascade do |t|

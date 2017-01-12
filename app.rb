@@ -100,25 +100,27 @@ namespace '/files' do
 	post '/upload/:user' do
 		@sender = User.find(session[:id])
 		puts params['file']
-		if params['file'] && params['file'][:filename]
-			filename = params['file'][:filename]
-			tempfile = params['file'][:tempfile]
-			root_path = Path::FILE_PATH + "/#{params[:user]}/#{@sender.username}"
-			puts "root_path = #{root_path}"
-			puts filename
-			#File.copy(tempfile.path, "#{root_path}/#{filename}")
-			FileUtils.mkdir_p(root_path) unless File.exist?(root_path)
-			File.open("#{root_path}/#{filename}", 'wb') do |f|
-      	f.write(tempfile.read)
-    	end
+		if params['file']
+			params['file'].each do |f|
+				filename = f[:filename]
+				tempfile = f[:tempfile]
+				root_path = Path::FILE_PATH + "/#{params[:user]}/#{@sender.username}"
+				puts "root_path = #{root_path}"
+				puts filename
+				#File.copy(tempfile.path, "#{root_path}/#{filename}")
+				FileUtils.mkdir_p(root_path) unless File.exist?(root_path)
+				File.open("#{root_path}/#{filename}", 'wb') do |f|
+	      	f.write(tempfile.read)
+	      end
 
-    	overwritten = Online_file.find_by(:from => @sender.username,
-    		                                :to => params[:user],
-    		                                :filename => filename)
+	    	overwritten = Online_file.find_by(:from => @sender.username,
+	    		                                :to => params[:user],
+	    		                                :filename => filename)
 
-			Online_file.create(:from => @sender.username,
-				                 :to => params[:user],
-				                 :filename => filename) if overwritten.nil?
+				Online_file.create(:from => @sender.username,
+					                 :to => params[:user],
+					                 :filename => filename) if overwritten.nil?
+			end
 			receiver = Online.find_by(:username => params[:user])
 			receiver.has_file = true
 			return "The file was successfully uploaded!"
@@ -156,7 +158,6 @@ namespace '/users' do
   end
 
   get do
-  	puts Path::FILE_PATH
   	redirect to('/users/login') unless has_permission?("user")
   	@user = User.find(session[:id])
   	@has_file = Online.find_by(:username => @user.username).has_file

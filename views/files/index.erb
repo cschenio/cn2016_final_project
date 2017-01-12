@@ -1,48 +1,48 @@
 <h2>File transfer Page</h2>
 
-<a href="../users">User Page</a>
+<a href="../users">Back to My Home Page</a>
 
 <br><br>
-<%= unless @user_file.nil? %>
-	<h3>Your filebox</h3>
-	<hr width="1pt">                                                                                                   
-		<table>
-		    <thead>
+<h3>My filebox</h3>
+<% unless @user_file.nil? || @user_file.count == 0 %>
+	<hr width="1pt">                                   
+	<table>
+	  <thead>
 		  <tr>
-		      <td> Sender </td>
-		      <td> Filename </td>
+		    <td> From </td>
+		    <td> Filename </td>
 		  </tr>
-		    </thead>
-		    <tbody>
-				  <% @user_file.each do |file| %>
-				  <tr>
-				  		<td> <%= file.from %> </td>
-				      <td> <a href=<% "download/#{file.from}/#{file.filename}" %> > <%= file.filename %> </a> </td>s
-				  </tr>
-				  <% end %>
-		    </tbody>
-		</table>
-	<% else %>
-		There is no any file to receive...
+	  </thead>
+    <tbody>
+		  <% @user_file.each do |file| %>
+		  <tr>
+	  		<td> <%= file.from %> </td>
+	      <td> <a href=<%= "files/download/#{file.from}/#{file.filename}" %> > <%= file.filename %> </a> </td>
+		  </tr>
+		  <% end %>
+    </tbody>
+	</table>
+<% else %>
+	There is no any file to receive...
 <% end %>
 <br><br>
 
-<% unless @online_users.nil? %>
-	<h3>Online user List</h3>
-	<hr width="1pt">                                                                                                   
+<h3>Online user List</h3>
+<% unless @online_users.nil? || @online_users.count == 1 %>
+	<hr width="1pt">
 	<table>
-	    <thead>
-	  <tr>
+	  <thead>
+	  	<tr>
 	      <td> User </td>
-	  </tr>
-	    </thead>
-	    <tbody>
-	  <% @online_users.each do |user| %>
-	  <tr>
-	      <td> <a href="upload/<% user.username%>"><%= user.username if user.username != @user.username %> </a> </td>
-	  </tr>
-	  <% end %>
-	    </tbody>
+	  	</tr>
+	  </thead>
+	  <tbody>
+	  	<% @online_users.each do |user| %>
+	  		<tr>
+	      	<td> <a href=<%= "/files/upload/" + user.username %>><%= user.username if user.username != @user.username %> </a> </td>
+	  		</tr>
+	  	<% end %>
+	  </tbody>
 	</table>
 <% else %>
 	There is no any online user...

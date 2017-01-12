@@ -10,16 +10,8 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170112023659) do
 
-  create_table "codes", force: :cascade do |t|
-    t.integer "user_id"
-    t.integer "mailbox_id"
-    t.string  "lang"
-    t.text    "content"
-    t.index ["mailbox_id"], name: "index_codes_on_mailbox_id"
-    t.index ["user_id"], name: "index_codes_on_user_id"
-  end
+ActiveRecord::Schema.define(version: 20170106045525) do
 
   create_table "mailboxes", force: :cascade do |t|
     t.integer "user_id"
@@ -36,8 +28,9 @@ ActiveRecord::Schema.define(version: 20170112023659) do
   end
 
   create_table "users", force: :cascade do |t|
-    t.string "username"
-    t.string "password"
+    t.string  "username"
+    t.string  "password"
+    t.boolean "super"
   end
 
 end

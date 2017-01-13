@@ -51,3 +51,6 @@ build-iPhoneSimulator/
 
 # [SELF] Database (binary files)
 *.sqlite3
+
+uploads/
+config.rb

@@ -73,7 +73,8 @@ namespace '/files' do
 		@user = User.find(session[:id])
 		online = Online.find_by(:username => @user.username)
 		online.has_file = false # the user has been here
-
+		online.save
+		
 		@user_file = Online_file.where(:to => @user.username)
 		puts @user_file.count unless @user_file.nil?
 		@online_users = Online.all
@@ -112,6 +113,7 @@ namespace '/files' do
 			end
 			receiver = Online.find_by(:username => params[:user])
 			receiver.has_file = true
+			receiver.save
 			erb :'files/success'
 		end
 	end
@@ -124,7 +126,7 @@ namespace '/files' do
 
 		redirect to('/error/nofile') if !File.exist?(path)
 		send_file path, :filename => params[:file], :disposition => 'attachment'
-		puts "after send the file"
+		
 		# DEBUG: it will turn to other page after send_file
 		File.delete(path)
 		onlinefile = Online_file.find_by(:from => params[:sender],
@@ -149,7 +151,7 @@ namespace '/users' do
   get do
   	redirect to('/users/login') unless has_permission?("user")
   	@user = User.find(session[:id])
-  	@has_file = Online.find_by(:username => @user.username).has_file
+  	@online = Online.find_by(:username => @user.username)
   	@users = (has_permission?("super"))? User.all : nil
   	erb :'users/index'
   end
@@ -159,7 +161,7 @@ namespace '/users' do
   	online_users = Online.all
   	puts "online"
   	if online_users
-  		online_users.each { |user| puts user.username }
+  		online_users.each { |user| puts user.username ; puts (user.has_file)? " true" : " false"}
   	else
   		puts "no online user"
   	end

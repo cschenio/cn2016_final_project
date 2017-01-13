@@ -7,3 +7,5 @@ gem 'rake'
 gem 'redcarpet'
 gem 'rouge'
 gem 'erubis'
+gem 'bcrypt'
+

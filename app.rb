@@ -93,7 +93,7 @@ namespace '/files' do
 
 	get '/upload/:user' do
 		@receiver = User.find_by(:username => params[:user])
-		redirect to('/files'), :notice => "no this user" if @receiver.nil?
+		redirect to('/files') if @receiver.nil?
 		erb :'files/upload'
 	end
 
@@ -123,7 +123,7 @@ namespace '/files' do
 			end
 			receiver = Online.find_by(:username => params[:user])
 			receiver.has_file = true
-			return "The file was successfully uploaded!"
+			erb :'files/success'
 		end
 	end
 

@@ -11,45 +11,57 @@ require './models/mailbox'
 require './models/mail_history'
 require './models/code'
 
+# Concerns: reusable modules
+require './controller_concerns/permission_authable'
+
+include PermissionAuthable
+
+
 set :database, {adapter: "sqlite3", database: "cnline.sqlite3"}
 
 enable :sessions
-
-=begin
-before do
-  puts "before block"
-  if session[:id]
-    @user = User.find(session[:id])
-    erb 
-  end
-end
-=end
 
 get '/' do    
   erb :index
 end
 
-
 namespace '/mails' do 
+
+  before do 
+    redirect to('/') unless has_permission?("user")
+  end
+
   get do
-    @mails = Mail.all
+    @mails = if has_permission?("super")
+               Mail.all
+             else
+               Mail.related_to(User.find(session[:id]))
+             end
     erb :'mails/index'
   end
 
   get '/new' do
+    @number_of_users = User.count
     erb :'mails/new'
   end
 
   get '/:id' do
-    markdown = Redcarpet::Markdown.new(Redcarpet::Render::HTML, autolink: true, tables: true, no_intra_emphasis: true)
+    markdown = Redcarpet::Markdown.new(Redcarpet::Render::HTML, 
+                                       autolink: true, 
+                                       tables: true, 
+                                       no_intra_emphasis: true)
     @mail = Mail.find(params[:id])
+
     @content = markdown.render(@mail.content)
+
+    redirect to('/mails') unless my_mail?(@mail)
+
     erb :'mails/show'
   end
 
   post '/new' do
-    mail = Mail.new(:user => User.find(1),# session[:id],
-                    :mailbox => User.find(1).mailbox,# User.find(params[:receiver]).mailbox,
+    mail = Mail.new(:user => User.find(session[:id]),
+                    :mailbox => User.find(params[:receiver]).mailbox,
                     :title => params[:title],
                     :content => params[:content])
     mail.save

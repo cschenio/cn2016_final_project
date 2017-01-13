@@ -1,4 +1,4 @@
-class Online_file < ActiveRecord::Base
+class OnlineFile < ActiveRecord::Base
 
   validates :from, presence: true
   validates :to, presence: true

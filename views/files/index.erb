@@ -17,7 +17,7 @@
 		  <% @user_file.each do |file| %>
 		  <tr>
 	  		<td> <%= file.from %> </td>
-	      <td> <a href=<%= "files/download/#{file.from}/#{file.filename}" %> > <%= file.filename %> </a> </td>
+	      <td> <a href=<%= URI.encode("files/download/#{file.from}/#{file.filename}") %> > <%= file.filename %> </a> </td>
 		  </tr>
 		  <% end %>
     </tbody>

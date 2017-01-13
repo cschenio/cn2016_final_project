@@ -18,6 +18,7 @@ require './controller_concerns/permission_authable'
 include PermissionAuthable
 
 # File transfer
+require 'uri'
 require 'fileutils'
 require_relative './config' # contains file_path
 

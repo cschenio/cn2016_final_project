@@ -54,8 +54,8 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  erubis
   bcrypt
+  erubis
   rake
   redcarpet
   rouge

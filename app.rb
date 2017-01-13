@@ -86,7 +86,7 @@ namespace '/files' do
     online.has_file = false # the user has been here
     online.save
     
-    @user_file = OnlineFile.where(:to => @user.username)
+    @user_file = Online_file.where(:to => @user.username)
     puts @user_file.count unless @user_file.nil?
     @online_users = Online.all
     erb :'files/index'
@@ -114,11 +114,11 @@ namespace '/files' do
           f.write(tempfile.read)
         end
 
-        overwritten = OnlineFile.find_by(:from => @sender.username,
+        overwritten = Online_file.find_by(:from => @sender.username,
                                           :to => params[:user],
                                           :filename => filename)
 
-        OnlineFile.create(:from => @sender.username,
+        Online_file.create(:from => @sender.username,
                            :to => params[:user],
                            :filename => filename) if overwritten.nil?
       end
@@ -143,7 +143,7 @@ namespace '/files' do
     
     # DEBUG: it will turn to other page after send_file
     File.delete(path)
-    onlinefile = OnlineFile.find_by(:from => params[:sender],
+    onlinefile = Online_file.find_by(:from => params[:sender],
                                       :to => user.username,
                                       :filename => params[:file])
     onlinefile.destroy_all  
@@ -235,7 +235,7 @@ namespace '/users' do
     online_user = user.online
     online_user.destroy unless online_user.nil?
     
-    user_files = OnlineFile.where(:to => user.username)
+    user_files = Online_file.where(:to => user.username)
     user_dir = Path::FILE_PATH + "/#{user.username}"
     puts user_dir
     if File.exist?(user_dir)

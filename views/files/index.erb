@@ -37,9 +37,9 @@
 	  	</tr>
 	  </thead>
 	  <tbody>
-	  	<% @online_users.each do |user| %>
+	  	<% @online_users.each do |online| %>
 	  		<tr>
-	      	<td> <a href=<%= "/files/upload/" + user.username %>><%= user.username if user.username != @user.username %> </a> </td>
+	      	<td> <a href=<%= "/files/upload/" + online.user.username %>><%= online.user.username if online.user.username != @user.username %> </a> </td>
 	  		</tr>
 	  	<% end %>
 	  </tbody>

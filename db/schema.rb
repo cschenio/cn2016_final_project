@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170112202744) do
+ActiveRecord::Schema.define(version: 20170113173659) do
 
   create_table "codes", force: :cascade do |t|
     t.integer "user_id"
@@ -42,9 +42,9 @@ ActiveRecord::Schema.define(version: 20170112202744) do
   end
 
   create_table "onlines", force: :cascade do |t|
-    t.string  "username"
     t.boolean "has_file"
-    t.index ["username"], name: "index_onlines_on_username", unique: true
+    t.integer "user_id"
+    t.index ["user_id"], name: "index_onlines_on_user_id"
   end
 
   create_table "users", force: :cascade do |t|

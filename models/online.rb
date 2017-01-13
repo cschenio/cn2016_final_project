@@ -1,6 +1,6 @@
 class Online < ActiveRecord::Base
-
-  validates :username, presence: true
-  validates :has_file, presence: true
+  belongs_to :user
+  validates :user, presence: true 
+  #validates :has_file, presence: true
 
 end

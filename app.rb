@@ -81,7 +81,8 @@ namespace '/files' do
 
   get do
     @user = User.find(session[:id])
-    online = Online.find_by(:username => @user.username)
+    online = @user.online
+    #online = Online.find_by(:username => @user.username)
     online.has_file = false # the user has been here
     online.save
     
@@ -121,9 +122,10 @@ namespace '/files' do
                            :to => params[:user],
                            :filename => filename) if overwritten.nil?
       end
-      receiver = Online.find_by(:username => params[:user])
-      receiver.has_file = true
-      receiver.save
+      receiver = User.find_by(:username => params[:user])
+      receiver_online = receiver.online
+      receiver_online.has_file = true
+      receiver_online.save
       erb :'files/success'
     end
   end
@@ -163,7 +165,8 @@ namespace '/users' do
   get do
     redirect to('/users/login') unless has_permission?("user")
     @user = User.find(session[:id])
-    @online = Online.find_by(:username => @user.username)
+    @online = @user.online
+    # @online = Online.find_by(:username => @user.username)
     @users = (has_permission?("super"))? User.all : nil
     erb :'users/index'
   end
@@ -200,7 +203,7 @@ namespace '/users' do
       p user
 
       session[:id] = user.id
-      Online.create(:username => params["username"])
+      Online.create(:user => user)
       redirect to('/users')
     end
   end
@@ -216,7 +219,7 @@ namespace '/users' do
     encrypt = BCrypt::Password.new(user.password)
     redirect to('/error/password_wrong') unless encrypt == params["password"]
     session[:id] = user.id
-    Online.create(:username => params["username"])
+    Online.create(:user => user)
     redirect to('/users')
   end
 
@@ -224,7 +227,7 @@ namespace '/users' do
     puts "logout"
     
     user = User.find(session[:id])
-    online_user = Online.find_by(:username => user.username)
+    online_user = user.online
     online_user.destroy unless online_user.nil?
     
     user_files = OnlineFile.where(:to => user.username)

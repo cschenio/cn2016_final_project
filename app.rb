@@ -205,7 +205,7 @@ namespace '/users' do
       p user
 
       session[:id] = user.id
-      Online.create(:user => user)
+      Online.create(:user => user, :has_file => false)
       redirect to('/users')
     end
   end

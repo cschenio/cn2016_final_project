@@ -7,6 +7,7 @@ require 'erubis'
 require 'sinatra/activerecord'
 require './models/user'
 require './models/online'
+require './models/online_file'
 require './models/mail'
 require './models/mailbox'
 require './models/mail_history'
@@ -75,7 +76,7 @@ end
 namespace '/files' do
 
   before do
-    redirect to('/') unless has_permission("user")
+    redirect to('/') unless has_permission?("user")
   end
 
   get do
@@ -84,7 +85,7 @@ namespace '/files' do
     online.has_file = false # the user has been here
     online.save
     
-    @user_file = Online_file.where(:to => @user.username)
+    @user_file = OnlineFile.where(:to => @user.username)
     puts @user_file.count unless @user_file.nil?
     @online_users = Online.all
     erb :'files/index'
@@ -112,11 +113,11 @@ namespace '/files' do
           f.write(tempfile.read)
         end
 
-        overwritten = Online_file.find_by(:from => @sender.username,
+        overwritten = OnlineFile.find_by(:from => @sender.username,
                                           :to => params[:user],
                                           :filename => filename)
 
-        Online_file.create(:from => @sender.username,
+        OnlineFile.create(:from => @sender.username,
                            :to => params[:user],
                            :filename => filename) if overwritten.nil?
       end
@@ -140,7 +141,7 @@ namespace '/files' do
     
     # DEBUG: it will turn to other page after send_file
     File.delete(path)
-    onlinefile = Online_file.find_by(:from => params[:sender],
+    onlinefile = OnlineFile.find_by(:from => params[:sender],
                                       :to => user.username,
                                       :filename => params[:file])
     onlinefile.destroy_all  
@@ -192,10 +193,12 @@ namespace '/users' do
       redirect to('/error/user_exists')
     else
       encrypt = BCrypt::Password.create(params["password"])
-      user = User.new(:username => params["username"],
-                      :password => encrypt,
-                      :super => (params["super"].nil?)? false : true)
-      user.save
+      user = 
+        User.create!(:username => params["username"],
+                     :password => encrypt,
+                     :super => (params["super"].nil?)? false : true)
+      p user
+
       session[:id] = user.id
       Online.create(:username => params["username"])
       redirect to('/users')
@@ -224,7 +227,7 @@ namespace '/users' do
     online_user = Online.find_by(:username => user.username)
     online_user.destroy unless online_user.nil?
     
-    user_files = Online_file.where(:to => user.username)
+    user_files = OnlineFile.where(:to => user.username)
     user_dir = Path::FILE_PATH + "/#{user.username}"
     puts user_dir
     if File.exist?(user_dir)

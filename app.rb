@@ -18,6 +18,9 @@ require 'uri'
 require 'fileutils'
 require_relative './config' # contains file_path
 
+# Encryt
+require 'bcrypt'
+
 set :database, {adapter: "sqlite3", database: "cnline.sqlite3"}
 
 enable :sessions
@@ -178,8 +181,9 @@ namespace '/users' do
     if user_exists
       redirect to('/error/user_exists')
     else
+    	encrypt = BCrypt::Password.create(params["password"])
       user = User.new(:username => params["username"],
-                      :password => params["password"],
+                      :password => encrypt,
                       :super => (params["super"].nil?)? false : true)
       user.save
       session[:id] = user.id
@@ -196,7 +200,8 @@ namespace '/users' do
     puts params
     user = User.find_by(:username => params["username"])
     redirect to('/error/user_not_found') if user.nil?
-    redirect to('/error/password_wrong') if params["password"] != user.password
+    encrypt = BCrypt::Password.new(user.password)
+    redirect to('/error/password_wrong') unless encrypt == params["password"]
     session[:id] = user.id
     puts
     puts "create online object"

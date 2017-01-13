@@ -86,7 +86,7 @@ namespace '/files' do
     online.has_file = false # the user has been here
     online.save
     
-    @user_file = Online_file.where(:to => @user.username)
+    @user_file = OnlineFile.where(:to => @user.username)
     puts @user_file.count unless @user_file.nil?
     @online_users = Online.all
     erb :'files/index'
@@ -114,11 +114,11 @@ namespace '/files' do
           f.write(tempfile.read)
         end
 
-        overwritten = Online_file.find_by(:from => @sender.username,
+        overwritten = OnlineFile.find_by(:from => @sender.username,
                                           :to => params[:user],
                                           :filename => filename)
 
-        Online_file.create(:from => @sender.username,
+        OnlineFile.create(:from => @sender.username,
                            :to => params[:user],
                            :filename => filename) if overwritten.nil?
       end
@@ -201,6 +201,7 @@ namespace '/users' do
         User.create!(:username => params["username"],
                      :password => encrypt,
                      :super => (params["super"].nil?)? false : true)
+      Mailbox.create!(:user => user)
       p user
 
       session[:id] = user.id
@@ -234,7 +235,7 @@ namespace '/users' do
     online_user = user.online
     online_user.destroy unless online_user.nil?
     
-    user_files = Online_file.where(:to => user.username)
+    user_files = OnlineFile.where(:to => user.username)
     user_dir = Path::FILE_PATH + "/#{user.username}"
     puts user_dir
     if File.exist?(user_dir)

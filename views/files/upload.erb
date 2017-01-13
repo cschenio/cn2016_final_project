@@ -1,0 +1,10 @@
+<h2> File to transfer to <%= @receiver.username %></h2>
+
+<form method="POST" enctype="multipart/form-data">
+  <fieldset>
+    <br>
+    Select File : <input type="file" name="file[]" multiple> <br><br>
+    <input type="submit" value="Upload!">
+    <!--<input type="button" value="Cancel!" onclick="">--> 
+  </fieldset>
+</form>

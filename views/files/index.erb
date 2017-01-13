@@ -1,0 +1,49 @@
+<h2>File transfer Page</h2>
+
+<a href="../users">Back to My Home Page</a>
+
+<br><br>
+<h3>My filebox</h3>
+<% unless @user_file.nil? || @user_file.count == 0 %>
+	<hr width="1pt">                                   
+	<table>
+	  <thead>
+		  <tr>
+		    <td> From </td>
+		    <td> Filename </td>
+		  </tr>
+	  </thead>
+    <tbody>
+		  <% @user_file.each do |file| %>
+		  <tr>
+	  		<td> <%= file.from %> </td>
+	      <td> <a href=<%= URI.encode("files/download/#{file.from}/#{file.filename}") %> > <%= file.filename %> </a> </td>
+		  </tr>
+		  <% end %>
+    </tbody>
+	</table>
+<% else %>
+	There is no any file to receive...
+<% end %>
+<br><br>
+
+<h3>Online user List</h3>
+<% unless @online_users.nil? || @online_users.count == 1 %>
+	<hr width="1pt">
+	<table>
+	  <thead>
+	  	<tr>
+	      <td> User </td>
+	  	</tr>
+	  </thead>
+	  <tbody>
+	  	<% @online_users.each do |user| %>
+	  		<tr>
+	      	<td> <a href=<%= "/files/upload/" + user.username %>><%= user.username if user.username != @user.username %> </a> </td>
+	  		</tr>
+	  	<% end %>
+	  </tbody>
+	</table>
+<% else %>
+	There is no any online user...
+<% end %>

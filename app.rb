@@ -6,6 +6,7 @@ require 'erubis'
 # Models
 require 'sinatra/activerecord'
 require './models/user'
+require './models/online'
 require './models/mail'
 require './models/mailbox'
 require './models/mail_history'
@@ -16,6 +17,13 @@ require './controller_concerns/permission_authable'
 
 include PermissionAuthable
 
+# File transfer
+require 'uri'
+require 'fileutils'
+require_relative './config' # contains file_path
+
+# Encryt
+require 'bcrypt'
 
 set :database, {adapter: "sqlite3", database: "cnline.sqlite3"}
 
@@ -70,72 +78,179 @@ namespace '/mails' do
 end
 
 
-### User START ###
+namespace '/files' do
 
-get '/signup' do
-  erb :'/signup/index'
+	before do
+		redirect to('/') unless has_permission("user")
+	end
+
+	get do
+		@user = User.find(session[:id])
+		online = Online.find_by(:username => @user.username)
+		online.has_file = false # the user has been here
+		online.save
+		
+		@user_file = Online_file.where(:to => @user.username)
+		puts @user_file.count unless @user_file.nil?
+		@online_users = Online.all
+		erb :'files/index'
+	end
+
+	get '/upload/:user' do
+		@receiver = User.find_by(:username => params[:user])
+		redirect to('/files') if @receiver.nil?
+		erb :'files/upload'
+	end
+
+	post '/upload/:user' do
+		@sender = User.find(session[:id])
+		puts params['file']
+		if params['file']
+			params['file'].each do |f|
+				filename = f[:filename]
+				tempfile = f[:tempfile]
+				root_path = Path::FILE_PATH + "/#{params[:user]}/#{@sender.username}"
+				puts "root_path = #{root_path}"
+				puts filename
+				#File.copy(tempfile.path, "#{root_path}/#{filename}")
+				FileUtils.mkdir_p(root_path) unless File.exist?(root_path)
+				File.open("#{root_path}/#{filename}", 'wb') do |f|
+	      	f.write(tempfile.read)
+	      end
+
+	    	overwritten = Online_file.find_by(:from => @sender.username,
+	    		                                :to => params[:user],
+	    		                                :filename => filename)
+
+				Online_file.create(:from => @sender.username,
+					                 :to => params[:user],
+					                 :filename => filename) if overwritten.nil?
+			end
+			receiver = Online.find_by(:username => params[:user])
+			receiver.has_file = true
+			receiver.save
+			erb :'files/success'
+		end
+	end
+
+	get '/download/:sender/:file' do
+		# Open the file under current username and download it...
+		user = User.find(session[:id])
+		path = Path::FILE_PATH + "/#{user.username}/#{params[:sender]}/#{params[:file]}"
+		puts path
+
+		redirect to('/error/nofile') if !File.exist?(path)
+		send_file path, :filename => params[:file], :disposition => 'attachment'
+		
+		# DEBUG: it will turn to other page after send_file
+		File.delete(path)
+		onlinefile = Online_file.find_by(:from => params[:sender],
+			                                :to => user.username,
+			                                :filename => params[:file])
+		onlinefile.destroy_all	
+	end
 end
 
-post '/signup' do
- puts params
- @is_exists = User.find_by(username: params["username"])
- if @is_exists
-   redirect '/error/1'
- else
-   @user = User.new(username: params["username"],
-                 password: params["password"])
-   @user.save
-   session[:id] = @user.id
-   redirect '/users'
- end
+namespace '/users' do
+
+  before '/signup' do
+  	#puts "request.path = #{request.path}" # print current url
+  	redirect to('/users') if has_permission?("user")
+  end
+
+  before '/login' do
+  	#puts "request.path = #{request.path}" # print current url
+  	redirect to('/users') if has_permission?("user")
+  end
+
+  get do
+  	redirect to('/users/login') unless has_permission?("user")
+  	@user = User.find(session[:id])
+  	@online = Online.find_by(:username => @user.username)
+  	@users = (has_permission?("super"))? User.all : nil
+  	erb :'users/index'
+  end
+
+### DEBUG
+  get '/online' do
+  	online_users = Online.all
+  	puts "online"
+  	if online_users
+  		online_users.each { |user| puts user.username ; puts (user.has_file)? " true" : " false"}
+  	else
+  		puts "no online user"
+  	end
+  end
+###
+  get '/signup' do
+    erb :'users/signup'
+  end
+  
+  post '/signup' do
+    puts params
+    user_exists = User.find_by(:username => params["username"])
+    if user_exists
+      redirect to('/error/user_exists')
+    else
+    	encrypt = BCrypt::Password.create(params["password"])
+      user = User.new(:username => params["username"],
+                      :password => encrypt,
+                      :super => (params["super"].nil?)? false : true)
+      user.save
+      session[:id] = user.id
+      Online.create(:username => params["username"])
+      redirect to('/users')
+    end
+  end
+
+  get '/login' do
+    erb :'users/login'
+  end
+
+  post '/login' do
+    puts params
+    user = User.find_by(:username => params["username"])
+    redirect to('/error/user_not_found') if user.nil?
+    encrypt = BCrypt::Password.new(user.password)
+    redirect to('/error/password_wrong') unless encrypt == params["password"]
+    session[:id] = user.id
+    Online.create(:username => params["username"])
+    redirect to('/users')
+  end
+
+  get '/logout' do
+  	puts "logout"
+  	
+  	user = User.find(session[:id])
+  	online_user = Online.find_by(:username => user.username)
+  	online_user.destroy unless online_user.nil?
+  	
+  	user_files = Online_file.where(:to => user.username)
+  	user_dir = Path::FILE_PATH + "/#{user.username}"
+  	puts user_dir
+  	if File.exist?(user_dir)
+  		puts "delete dir now..."
+  		FileUtils.remove_dir(user_dir, true) 
+  	end
+  	user_files.destroy_all unless user_files.nil?
+
+    redirect to('/')
+  end
+
 end
 
-get '/login' do
-  erb :'/login/index'
-end
-
-post '/login' do
-  puts params
-  @user = User.find_by(username: params["username"],
-                      password: params["password"])
-
-  if @user.nil?
-    redirect '/error/2'
-  else
-    session[:id] = @user.id
-    redirect '/users'
+namespace '/error' do
+  get '/:cond' do
+    @msg = case params[:cond]
+           when "user_exists" then "The account already exists."
+           when "user_not_found" then "The account doesn't exist."
+           when "password_wrong" then "Password is wrong!"
+           else ""
+           end
+    erb :'error'
   end
 end
 
-get '/logout' do
-  session.clear
-  redirect '/'
-end
-
-get '/users' do
-  if session[:id]
-    @user = User.find(session[:id])
-    erb :'/users/index'
-  else
-    redirect '/error/3'
-  end
-end
-
-get '/error/:id' do
-  @msg = ""
-  case params[:id]
-  when "1"
-    @msg = "This username is existed!"
-  when "2"
-    @msg = "Username or Password wrong!"
-  when "3"
-    @msg = "User session error..."
-  end
-  erb :'error'
-
-end
-
-### User END ###
 
 namespace '/codes' do
   formatter = Rouge::Formatters::HTML.new(css_class: 'highlight')
@@ -169,3 +284,4 @@ namespace '/codes' do
     redirect to('/codes')
   end
 end
+

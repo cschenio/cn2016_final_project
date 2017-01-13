@@ -1,10 +1,10 @@
 <h1> Code List </h1>
+<a href='/users'> << Go back to my homepage </a>
 <hr width="1pt">
 <table>
     <thead>
 	<tr>
-	    <td> FROM </td>
-	    <td> TO </td>
+	    <td> AUTHOR </td>
 	    <td> Language </td>
 	    <td> Content </td>
 	</tr>
@@ -13,7 +13,6 @@
 	<% @codes.each do |code| %>
 	<tr>
 	    <td> <%= code.from.id %> </td>
-	    <td> <%= code.to.id %> </td>
 	    <td> <%= code.lang %> </td>
 	    <td> <a href=<%="/codes/#{code.id}"%>> Show </a> </td>
 	</tr>

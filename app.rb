@@ -288,7 +288,6 @@ namespace '/codes' do
   post '/new' do
     p params[:content]
     code = Code.new(:user => User.find(session[:id]),
-                    :mailbox => User.find(params[:receiver]).mailbox,
                     :lang => params[:lang],
                     :content => params[:content])
     code.save

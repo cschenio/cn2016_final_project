@@ -23,7 +23,7 @@ require 'bcrypt'
 
 include PermissionAuthable
 
-set :database, {adapter: "sqlite3", database: "cnline.sqlite3"}
+set :database, {adapter: "sqlite3", database: "src/cnline.sqlite3"}
 
 enable :sessions
 
